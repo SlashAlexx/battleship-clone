@@ -181,6 +181,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75d8e2d4ff4a7f149b501adc7d2f7eb1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  waterTilemap: {fileID: 1327600894}
+  shipTilemap: {fileID: 1701004155}
+  pegTilemap: {fileID: 1653113975}
+  ship_rotation: 0
+  Ship: 2
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -845,7 +850,6 @@ MonoBehaviour:
   tileWater: {fileID: 11400000, guid: d2a17df02a65f9248ab9bf00cb68a88d, type: 2}
   tileRedPeg: {fileID: 11400000, guid: d141530ba6d5d9049976f274d27d2822, type: 2}
   tileWhitePeg: {fileID: 11400000, guid: 50c8ccc84c5621e4cb26923e2f3a4d53, type: 2}
-  tilemap: {fileID: 1327600894}
   tilePatrol:
   - {fileID: 11400000, guid: 4e4486cf77a11ef46b5c29ca697fb98b, type: 2}
   - {fileID: 11400000, guid: a9a822187988b054d9b2d5896e50f0de, type: 2}
