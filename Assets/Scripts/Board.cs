@@ -28,18 +28,22 @@ public class Board : MonoBehaviour
                 Cell current_cell = all_cells[x,y];
                 current_cell.position = new Vector3Int(x, y, 0);
 
-                tilemap.SetTile(current_cell.position, GetCellType(current_cell));
+                tilemap.SetTile(current_cell.position, GetCellSprite(current_cell));
                 //tilemap.SetTransformMatrix(current_cell.position, Matrix4x4.TRS(Vector3.zero, Quaternion.Euler(0, 0, (int)current_cell.rotation), Vector3.one)); // Sets rotation for ships
             }
         }
 
     }
 
-    private Tile GetCellType(Cell cell)
+    private Tile GetCellSprite(Cell cell)
     {
         if (cell.tileType == Cell.TileType.Water)
         {
             return tileWater;
+        }
+        else if(cell.tileType == Cell.TileType.Ship)
+        {
+            return GetShipSection(cell.shipAttributes);
         }
         else
         {
@@ -48,20 +52,12 @@ public class Board : MonoBehaviour
 
     }
 
-    private Tile GetShipSection(Ship cell)
+    private Tile GetShipSection(Ship shipAttributes)
     {
-        if (cell.shipType == Ship.ShipType.Patrol)
-        {
-            return tilePatrol[cell.section];
-        }
-
-        switch (cell.shipType)
+        switch (shipAttributes.shipType)
         {
             case Ship.ShipType.Patrol:
-                return tilePatrol[cell.section];
-
-            case Ship.ShipType.Submarine:
-                return tileSubmarine[cell.section];
+                return tilePatrol[shipAttributes.currentSection];
         }
 
         return null;

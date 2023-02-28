@@ -10,6 +10,7 @@ public struct Cell
     }
 
     public TileType tileType;
+    public Ship shipAttributes;
 
     public Vector3Int position;
     public bool hit;

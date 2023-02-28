@@ -20,8 +20,8 @@ public struct Ship
     }
 
     public ShipType shipType;
-
     public RotationType rotation;
-    public int section;
+    public int currentSection; //Updates through board script
+    public bool isPlaced;
 
 }

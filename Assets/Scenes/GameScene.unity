@@ -181,11 +181,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75d8e2d4ff4a7f149b501adc7d2f7eb1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  board: {fileID: 1859957200}
   waterTilemap: {fileID: 1327600894}
   shipTilemap: {fileID: 1701004155}
   pegTilemap: {fileID: 1653113975}
   ship_rotation: 0
-  Ship: 2
+  ship: 2
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0

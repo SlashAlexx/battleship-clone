@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using static Cell;
@@ -9,8 +6,9 @@ public class GameLogic : MonoBehaviour
 {
     private int width = 10;
     private int height = 10;
+    private Vector3Int current_mouse_position;
 
-    private Board board;
+    public Board board;
     private Cell[,] state;
     private Cell[,] shipState;
 
@@ -25,13 +23,45 @@ public class GameLogic : MonoBehaviour
         Battleship = 4,
         Carrier = 5,
     }
-
-    public ShipSelection Ship;
+    public ShipSelection ship;
 
     private void Awake()
     {
+        state = new Cell[width, height]; //initialze 2D array of Cells
+        shipState = new Cell[width, height];
+
         DrawStartingGameBoard();
         AlignCameraToBoard();
+    }
+
+    private void Update()
+    {
+        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        if (mousePosition.x >= 0 && mousePosition.x <= 10 && mousePosition.y >= 0 && mousePosition.y <= 10)
+        {  
+            if (Input.GetMouseButtonDown(0))
+            {
+                PlaceShip(ship, true);
+            }
+            else
+            {
+                PreviewShipPlacement();
+            }
+        }
+
+    }
+
+    private void DrawStartingGameBoard()
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                state[x, y].tileType = TileType.Water;
+            }
+        }
+
+        board.DrawBoard(state, waterTilemap);
     }
 
     private void AlignCameraToBoard()
@@ -40,53 +70,59 @@ public class GameLogic : MonoBehaviour
         Camera.main.transform.position = board_position; //Aligns Camera with game board
     }
 
-    private void DrawStartingGameBoard()
+    private void PlaceShip(ShipSelection ship, bool isPlaced)
     {
-        board = GetComponentInChildren<Board>();
-
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                state[x, y].tileType = Cell.TileType.Water;
-            }
-        }
-
-        board.DrawBoard(state, waterTilemap);
-    }
-
-/*
-    private void PlaceShips()
-    {
+        // Gets grid position from mouse
         Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
         Vector3Int starting_position = shipTilemap.WorldToCell(worldPosition);
-        int shipType = (int)Ship;
-        int ship_length = (int)Ship;
-        int ship_direction = ship_rotation;
 
+        // If ship is already placed
+        if (shipState[starting_position.x, starting_position.y].shipAttributes.isPlaced) return;
+
+        // New Ship attributes
+        int ship_length = (int)ship;
+        int ship_direction = ship_rotation;
         Vector3Int[] section_positions = AssignShipSectionPositions(starting_position, ship_length, ship_direction);
-        Cell.RotationType section_rotation = GetSectionRotation(ship_direction);
+        Ship.RotationType section_rotation = GetSectionRotation(ship_direction);
 
         for (int i = 0; i < section_positions.Length; i++)
         {
+
             Cell cell = new Cell();
 
-            cell.tileType = Cell.TileType.Ship;
-            cell.shipType = Cell.ShipType.Patrol;
-            cell.section = i; //Sections are in consecutive order
-            cell.rotation = section_rotation;
+            // Sets ship attributes to new cell
+            cell.tileType = TileType.Ship;
+            cell.shipAttributes.shipType = Ship.ShipType.Patrol;
+            cell.shipAttributes.currentSection = i; //Sections are in consecutive order
+            cell.shipAttributes.rotation = GetSectionRotation((int)section_rotation);
 
-            int x_position = (int)section_positions[i].x;
-            int y_position = (int)section_positions[i].y;
+            cell.shipAttributes.isPlaced = isPlaced;
+
+            int x_position = section_positions[i].x;
+            int y_position = section_positions[i].y;
 
             shipState[x_position, y_position] = cell;
         }
 
+        // Draws board with new cell attributes
         board.DrawBoard(shipState, shipTilemap);
     }
+    private void PreviewShipPlacement()
+    {
+        // Gets position on grid from mouse.
+        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector3Int starting_position = shipTilemap.WorldToCell(worldPosition);
 
-    private Cell.ShipType GetShipType(ShipSelection ship)
+        PlaceShip(ship, false);
+        
+        if (current_mouse_position != starting_position)
+        {
+            ClearShipTilemap();
+            current_mouse_position = starting_position;
+        }
+    }
+
+   /* private Cell.shipAttributes.ShipType GetShipType(ShipSelection ship)
     {
         switch (ship)
         {
@@ -95,19 +131,21 @@ public class GameLogic : MonoBehaviour
             case ShipSelection.Submarine:
                 return Cell.ShipType.Submarine;
             //case ShipSelection.Destroyer:
-               // return Cell.RotationType.Up;
+            // return Cell.RotationType.Up;
             case ShipSelection.Battleship:
-                //return Cell.RotationType.Left;
+            //return Cell.RotationType.Left;
             case ShipSelection.Carrier:
-                //return Cell.RotationType.Left;
+            //return Cell.RotationType.Left;
             default:
                 return 0;
         }
     }
+*/
+
 
     private Vector3Int[] AssignShipSectionPositions(Vector3Int starting_position, int ship_length, int ship_direction)
     {
-        Vector3Int[] patrol_positions = new Vector3Int[ship_length];
+        Vector3Int[] position_list = new Vector3Int[ship_length];
         Vector3Int section_offset;
 
         switch (ship_direction)
@@ -139,57 +177,50 @@ public class GameLogic : MonoBehaviour
 
         for (int i = 0; i < ship_length; i++)
         {
-            patrol_positions[i] = starting_position + (section_offset * i);
+            position_list[i] = starting_position + (section_offset * i);
         }
 
-        return patrol_positions;
+        return position_list;
     }
 
-    private Cell.RotationType GetSectionRotation(int ship_direction)
+    private Ship.RotationType GetSectionRotation(int ship_direction)
     {
         switch (ship_direction)
         {
             case 0:
-                return Cell.RotationType.Down;
+                return Ship.RotationType.Down;
             case 90:
-                return Cell.RotationType.Right;
+                return Ship.RotationType.Right;
             case 180:
-                return Cell.RotationType.Up;
+                return Ship.RotationType.Up;
             case 270:
-                return Cell.RotationType.Left;
+                return Ship.RotationType.Left;
             default:
                 return 0;
         }
     }
 
-    private void PreviewShipPlacement()
+    private void ClearShipTilemap()
     {
-        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
-        Vector3Int starting_position = shipTilemap.WorldToCell(worldPosition);
-        int shipType = (int)Ship;
-        int ship_length = (int)Ship;
-        int ship_direction = ship_rotation;
-
-        Vector3Int[] section_positions = AssignShipSectionPositions(starting_position, ship_length, ship_direction);
-        Cell.RotationType section_rotation = GetSectionRotation(ship_direction);
-
-        for (int i = 0; i < section_positions.Length; i++)
+        for (int x = 0; x < width; x++)
         {
-            Cell cell = new Cell();
+            for (int y = 0; y < height; y++)
+            {
+                Cell cell = new Cell();
 
-            cell.tileType = Cell.TileType.Ship;
-            cell.shipType = Cell.ShipType.Patrol;
-            cell.section = i; //Sections are in consecutive order
-            cell.rotation = section_rotation;
-
-            int x_position = (int)section_positions[i].x;
-            int y_position = (int)section_positions[i].y;
-
-            shipState[x_position, y_position] = cell;
+                if (shipState[x, y].shipAttributes.isPlaced != true)
+                {
+                    shipState[x, y] = cell;
+                }
+            }
         }
 
         board.DrawBoard(shipState, shipTilemap);
-    }*/
+    }
+
+    private void CheckAdjacentShipCells(Cell cell)
+    {
+        
+    }
 }
 
